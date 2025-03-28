@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-service-blue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: integration-service
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: integration-service
+        version: blue
+    spec:
+      serviceAccountName: moon-insurance # Use the KSA you created
+      containers:
+        - name: integration-service
+          image: us-central1-docker.pkg.dev/moon-insurance/moon-insurance/integration-service:latest
+          ports:
+            - containerPort: 5002
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: integration-service-db-secret
+                  key: DATABASE_URL
