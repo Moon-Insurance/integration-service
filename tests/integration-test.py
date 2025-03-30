@@ -37,7 +37,7 @@ def cleanup_database():
 
 # Sample test data
 test_sale = {
-    "sale_id": "S5001",
+    "sale_id": "S8001",
     "agent_id": "A7001",
     "product": "Smartphone",
     "amount": 799.99
