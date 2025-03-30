@@ -1,43 +1,74 @@
-import unittest
-import sys
+import pytest
 import os
+import sys
+import json
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.pool import NullPool
 
 # Add the project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from app import app, db
+from app import app, db, Sale  # Import Flask app and models
 
-class SalesServiceIntegrationTest(unittest.TestCase):
-    def setUp(self):
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-        app.config['TESTING'] = True
-        self.client = app.test_client()
-        with app.app_context():
-            db.create_all()
+@pytest.fixture(scope='module')
+def test_client():
+    """Fixture to set up a clean test database and provide a test client."""
+    app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL',"sqlite:///:memory:" )  # Use local DB
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'poolclass': NullPool  # Disable pooling, ensuring a single connection
+    }
+    with app.app_context():
+        db.drop_all()  # Drop all tables before running tests
+        db.create_all()  # Recreate tables for fresh start
 
-    def tearDown(self):
-        with app.app_context():
-            db.session.remove()
-            db.drop_all()
+        yield app.test_client()  # Provide the test client for testing
 
-    def test_full_crud(self):
-        # Create
-        res = self.client.post('/sales', json={'sale_id': 'S100', 'agent_id': 'A001', 'product': 'Health', 'amount': 2000})
-        self.assertEqual(res.status_code, 201)
+        db.session.remove()
+        db.drop_all()  # Cleanup after all tests
 
-        # Read
-        res = self.client.get('/sales/S100')
-        data = res.get_json()
-        self.assertEqual(data['product'], 'Health')
+@pytest.fixture(scope='function', autouse=True)
+def cleanup_database():
+    """Ensure the database is clean before each test."""
+    with app.app_context():
+        db.session.query(Sale).delete()  # Remove all Sale records before each test
+        db.session.commit()
 
-        # Update
-        res = self.client.put('/sales/S100', json={'amount': 2500})
-        data = res.get_json()
-        self.assertEqual(data['amount'], 2500)
+# Sample test data
+test_sale = {
+    "sale_id": "S5001",
+    "agent_id": "A7001",
+    "product": "Smartphone",
+    "amount": 799.99
+}
 
-        # Delete
-        res = self.client.delete('/sales/S100')
-        self.assertEqual(res.status_code, 200)
+def test_create_sale(test_client):
+    response = test_client.post('/', data=json.dumps(test_sale), content_type='application/json')
+    assert response.status_code == 201
+    data = response.get_json()
+    assert data['sale_id'] == test_sale['sale_id']
 
-if __name__ == '__main__':
-    unittest.main()
+def test_get_sale(test_client):
+    test_client.post('/', data=json.dumps(test_sale), content_type='application/json')  # Insert data first
+    response = test_client.get(f"/{test_sale['sale_id']}")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data['sale_id'] == test_sale['sale_id']
+
+def test_update_sale(test_client):
+    test_client.post('/', data=json.dumps(test_sale), content_type='application/json')  # Insert data first
+    update_data = {"amount": 899.99}
+    response = test_client.put(f"/{test_sale['sale_id']}", data=json.dumps(update_data), content_type='application/json')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data['amount'] == update_data['amount']
+
+def test_delete_sale(test_client):
+    test_client.post('/', data=json.dumps(test_sale), content_type='application/json')  # Insert data first
+    response = test_client.delete(f"/{test_sale['sale_id']}")
+    assert response.status_code == 200
+    assert response.get_json()['message'] == 'Sale deleted'
+
+    response = test_client.get(f"/{test_sale['sale_id']}")  # Verify deletion
+    assert response.status_code == 404
