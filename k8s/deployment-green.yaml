@@ -14,7 +14,7 @@ spec:
         app: integration-service
         version: green
     spec:
-      serviceAccountName: moon-insurance # Use the KSA you created
+      serviceAccountName: moon-insurance
       containers:
         - name: integration-service
           image: us-central1-docker.pkg.dev/moon-insurance/moon-insurance/integration-service:latest
