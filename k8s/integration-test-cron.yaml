@@ -11,7 +11,7 @@ spec:
           containers:
             - name: integration-test
               image: us-central1-docker.pkg.dev/moon-insurance/moon-insurance/integration-service:latest
-              command: ["pytest", "/tests/integration-test.py"]
+              command: ["pytest", "tests/integration-test.py"]
               resources:
                 requests:
                   cpu: "250m"
