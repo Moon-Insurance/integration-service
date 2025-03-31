@@ -13,7 +13,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)  # Initialize Migrations
-
+migrate.init_app(app, db)
 
 class Sale(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -30,8 +30,8 @@ class Sale(db.Model):
             'amount': self.amount
         }
 
-@app.before_first_request
-def create_tables():
+# Create database tables
+with app.app_context():
     db.create_all()
 
 # CREATE

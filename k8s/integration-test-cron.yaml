@@ -3,11 +3,13 @@ kind: CronJob
 metadata:
   name: integration-test-integration-service
 spec:
-  schedule: "0 0 * * *" # Adjust to your desired schedule
+  schedule: "0 * * * *" # Run every hour (at the start of the hour)
   jobTemplate:
     spec:
+      ttlSecondsAfterFinished: 600 # Keep pod for 10 min after completion
       template:
         spec:
+          restartPolicy: Never
           containers:
             - name: integration-test-integration-service
               image: us-central1-docker.pkg.dev/moon-insurance/moon-insurance/integration-service:latest
@@ -20,9 +22,8 @@ spec:
                   cpu: "500m"
                   memory: "256Mi"
               env:
-                - name: DATABASE_URL
+                - name: BASE_URL
                   valueFrom:
                     secretKeyRef:
-                      name: integration-service-db-secret
-                      key: DATABASE_URL
-          restartPolicy: OnFailure
+                      name: integration-service-url-secret
+                      key: BASE_URL

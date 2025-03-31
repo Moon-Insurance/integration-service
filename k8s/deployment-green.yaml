@@ -19,7 +19,7 @@ spec:
         - name: integration-service
           image: us-central1-docker.pkg.dev/moon-insurance/moon-insurance/integration-service:latest
           ports:
-            - containerPort: 5002
+            - containerPort: 5003
           resources:
             requests:
               cpu: "250m"
