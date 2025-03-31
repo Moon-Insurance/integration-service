@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: integration-test-integration-service
+spec:
+  schedule: "0 0 * * *" # Adjust to your desired schedule
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: integration-test
+              image: us-central1-docker.pkg.dev/moon-insurance/moon-insurance/integration-service:latest
+              command: ["pytest", "/tests/integration-test.py"]
+              resources:
+                requests:
+                  cpu: "250m"
+                  memory: "128Mi"
+                limits:
+                  cpu: "500m"
+                  memory: "256Mi"
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: integration-service-db-secret
+                      key: DATABASE_URL
+          restartPolicy: OnFailure
