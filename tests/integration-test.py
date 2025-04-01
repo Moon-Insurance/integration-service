@@ -2,7 +2,7 @@ import pytest
 import os
 import requests
 
-BASE_URL = os.getenv('BASE_URL', 'http://localhost:5003')  # Default to local if not provided
+BASE_URL = os.getenv('BASE_URL', 'http://localhost:5003') 
 
 # Sample test data
 test_sale = {
