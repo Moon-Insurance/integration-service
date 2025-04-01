@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: integration-service-blue
 spec:
-  replicas: !
+  replicas: 1
   selector:
     matchLabels:
       app: integration-service
