@@ -24,4 +24,7 @@ spec:
                   memory: "256Mi"
               env:
                 - name: BASE_URL
-                  value: "http://mooninsurance.com"
+                  valueFrom:
+                    secretKeyRef:
+                      name: integration-service-url-secret
+                      key: BASE_URL
