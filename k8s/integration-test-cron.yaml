@@ -4,7 +4,6 @@ metadata:
   name: integration-test-integration-service
 spec:
   schedule: "0 * * * *" # Run every hour (at the start of the hour)
-  # Prevent concurrent runs if the previous one hasn't finished yet
   jobTemplate:
     spec:
       ttlSecondsAfterFinished: 600 # Keep pod for 10 min after completion
